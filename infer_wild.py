@@ -35,7 +35,18 @@ if torch.cuda.is_available():
 
 print('Loading checkpoint', opts.evaluate)
 checkpoint = torch.load(opts.evaluate, map_location=lambda storage, loc: storage)
-model_backbone.load_state_dict(checkpoint['model_pos'], strict=True)
+state_dict = checkpoint['model_pos']
+
+# Create a new OrderedDict without the 'module.' prefix
+from collections import OrderedDict
+new_state_dict = OrderedDict()
+for k, v in state_dict.items():
+    new_key = k.replace("module.", "")  # remove the "module." prefix if present
+    new_state_dict[new_key] = v
+
+# Now load with the new state dict
+model_backbone.load_state_dict(new_state_dict, strict=True)
+
 model_pos = model_backbone
 model_pos.eval()
 testloader_params = {
